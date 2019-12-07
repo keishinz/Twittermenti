@@ -6,12 +6,17 @@
 //  Copyright © 2019 London App Brewery. All rights reserved.
 //
 
+import CoreML
 import UIKit
 import SwifteriOS
+import SwiftyJSON
 
 class ViewController: UIViewController {
     
     let swifter = Swifter(consumerKey: TWITTER_CONSUMER_KEY, consumerSecret: TWITTER_CONSUMER_SECRET)
+    let sentimentClassifier = TweetSentimentClassifier()
+    
+    var tweetTextResults = [String]()
     
     @IBOutlet weak var backgroundView: UIView!
     @IBOutlet weak var textField: UITextField!
@@ -20,16 +25,20 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        swifter.searchTweet(using: "@apple",
-                            lang: "en",
-                            count: 100,
-                            tweetMode: .extended,
-                            success: { (results, metadata) in
-            print(results)
+//        let testPrediction = try! sentimentClassifier.prediction(text: "@Apple I don't need three cameras!")
+//        print(testPrediction.label)
+        
+        swifter.searchTweet(using: "@apple", lang: "en", count: 100, tweetMode: .extended, success: { (results, metadata) in
+            
+            guard let numberOfResults = results.array?.count else { return }
+            for i in 0 ..< numberOfResults {
+                if let tweetText = results[i]["full_text"].string {
+                    self.tweetTextResults.append(tweetText)
+                }
+            }
         }) { (error) in
             print(error.localizedDescription)
         }
-//        swifter.searchTweet(using: <#T##String#>, geocode: <#T##String?#>, lang: <#T##String?#>, locale: <#T##String?#>, resultType: <#T##String?#>, count: <#T##Int?#>, until: <#T##String?#>, sinceID: <#T##String?#>, maxID: <#T##String?#>, includeEntities: <#T##Bool?#>, callback: <#T##String?#>, tweetMode: <#T##TweetMode#>, success: <#T##Swifter.SearchResultHandler?##Swifter.SearchResultHandler?##(JSON, JSON) -> Void#>, failure: <#T##Swifter.FailureHandler##Swifter.FailureHandler##(Error) -> Void#>)
     }
 
     @IBAction func predictPressed(_ sender: Any) {
