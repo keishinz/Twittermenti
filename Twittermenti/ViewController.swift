@@ -16,7 +16,7 @@ class ViewController: UIViewController {
     let swifter = Swifter(consumerKey: TWITTER_CONSUMER_KEY, consumerSecret: TWITTER_CONSUMER_SECRET)
     let sentimentClassifier = TweetSentimentClassifier()
     
-    var tweetTextResults = [String]()
+    var predictionInput = [TweetSentimentClassifierInput]()
     
     @IBOutlet weak var backgroundView: UIView!
     @IBOutlet weak var textField: UITextField!
@@ -28,14 +28,31 @@ class ViewController: UIViewController {
 //        let testPrediction = try! sentimentClassifier.prediction(text: "@Apple I don't need three cameras!")
 //        print(testPrediction.label)
         
-        swifter.searchTweet(using: "@apple", lang: "en", count: 100, tweetMode: .extended, success: { (results, metadata) in
+        swifter.searchTweet(using: "@POTUS", lang: "en", count: 100, tweetMode: .extended, success: { (results, metadata) in
             
             guard let numberOfResults = results.array?.count else { return }
             for i in 0 ..< numberOfResults {
                 if let tweetText = results[i]["full_text"].string {
-                    self.tweetTextResults.append(tweetText)
+                    
+                    print(tweetText)
+                    let tweetForPrediction = TweetSentimentClassifierInput(text: tweetText)
+                    self.predictionInput.append(tweetForPrediction)
                 }
             }
+            
+            do {
+                let predictionResult = try self.sentimentClassifier.predictions(inputs: self.predictionInput)
+                
+                for element in predictionResult {
+                    print("PredictionResult result: \(element.label)")
+                }
+                
+            } catch {
+                print("Prediction error: \(error.localizedDescription)")
+            }
+                
+            
+            
         }) { (error) in
             print(error.localizedDescription)
         }
